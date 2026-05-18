@@ -23,17 +23,7 @@ mouseCursor: Texture = Texture("mouse cursor.png", scale = 1.2)
 background: Texture = Texture("Backgrounds/MainMenu.png", scale = 3)
 background.transform.position = Vector2(-10, 0)
 
-answers = ["Tame Impala", "Rihanna", "Billy Joel", "Kendrick Lamar", "Fleetwood Mac", "Michael Jackson", "The Weeknd", "Post Malone", "Don Toliver", "Post Malone again"]
-btn1Options = ["Tame Impala", "Kendrick Lamar", "Billy Joel", "Bruno Mars", "twenty one pilots", "Da Baby", "The Weeknd", "Thomas Rhett", "Don Toliver", "Post Malone again"]
-btn2Options = ["DJ Khaled", "Rihanna", "Morgan Wallen", "Lil Baby", "Fleetwood Mac", "Queen", "Lil Nas X", "Post Malone", "Janet Jackson", "Jack Black"]
-btn3Options = ["Glass Animals", "Elton John", "Lauv", "Kendrick Lamar", "Rod Stewart", "J. Cole", "The Weekend", "Swae Lee", "Drake", "Lil Nas X"]
-btn4Options = ["Maroon 5", "Taylor Swift", "Social House", "Da Baby", "Barbra Streisand", "Michael Jackson", "Drake", "Justin Moore", "Da Baby", "Lauv"]
-
-currentAlbum: Texture = Texture("Albums/" + answers[questionNum] + ".png", scale = 1)
-
 music: SFX = SFX("Kubbi - Up In My Jam  NO COPYRIGHT 8-bit Music.mp3") # Background music.
-rightAns: SFX = SFX("Right.wav")
-wrongAns: SFX = SFX("Wrong.wav")
 
 music.set_music_volume(0.25)
 music.load_music()
@@ -44,21 +34,6 @@ scoreText.transform.position = Vector2(20, 20)
 
 fpsText: Text = Text(score, bitFont, scale = 0.4, fillColor = wisteria)
 fpsText.transform.position = Vector2(680, 20)
-
-questionText: Text = Text("Guess the artist", bitFont, scale = 1, fillColor = celeste)
-questionText.transform.position = Vector2(40, 520)
-
-option1: Text = Text(btn1Options[questionNum], bitFont, scale = optionSize, fillColor = amethyst)
-option1.transform.position = Vector2(40, 360)
-
-option2: Text = Text(btn2Options[questionNum], bitFont, scale = optionSize, fillColor = wisteria)
-option2.transform.position = Vector2(40, 410)
-
-option3: Text = Text(btn3Options[questionNum], bitFont, scale = optionSize, fillColor = richBlack)
-option3.transform.position = Vector2(40, 450)
-
-option4: Text = Text(btn4Options[questionNum], bitFont, scale = optionSize, fillColor = richBlack)
-option4.transform.position = Vector2(40, 490)
 
 endText:Text = Text("ggs, " + userName, bitFont, scale = 1, fillColor = celeste)
 endText.transform.position = Vector2(20, 20)
@@ -74,6 +49,11 @@ title.transform.position = Vector2(220, 150)
 
 playGame: Text = Text("Play Game", bitFont)
 playGame.transform.position = Vector2(40, 490)
+
+player:Texture = Texture("char.png", 1)
+player.transform.position = Vector2(0, 0)
+
+inputVector:Vector2 = Vector2()
 
 class GameState(Enum):
     MainMenu = 0
@@ -104,28 +84,14 @@ class Game:
         
         if gameState == GameState.GameScreen:
             scoreText.text = score
-            currentAlbum.transform.position = Vector2(240, math.sin((pygame.time.get_ticks() / 3 % 1000) / 100) * 10 + 50)
 
-            if questionNum < len(answers) - 1:
-                currentAlbum.path = "Assets/Images/Albums/" + answers[questionNum] + ".png"
-                
-                option1.text = btn1Options[questionNum]
-                option2.text = btn2Options[questionNum]
-                option3.text = btn3Options[questionNum]
-                option4.text = btn4Options[questionNum]
+            player.draw(window.display)
+            player.transform.position += inputVector * 1
 
             if refreshAll:
                 Game.refresh_all()
-            
-            currentAlbum.draw(window.display)
 
             scoreText.draw(window.display)
-            questionText.draw(window.display)
-
-            option1.draw(window.display)
-            option2.draw(window.display)
-            option3.draw(window.display)
-            option4.draw(window.display)
         elif gameState == GameState.MainMenu:
             playGame.transform.position = Vector2(math.cos((pygame.time.get_ticks() / 3 % 1000) / 100) * 10 + 50, playGame.transform.position.y)
 
@@ -151,11 +117,6 @@ class Game:
     # Refreshes all GameObjects.
     def refresh_all():
         scoreText.reset_rect()
-        currentAlbum.reset_rect()
-        option1.reset_rect()
-        option2.reset_rect()
-        option3.reset_rect()
-        option4.reset_rect()
 
         global refreshAll
         refreshAll = False
@@ -171,15 +132,7 @@ class Game:
                     Game.key_events(event)
                 case pygame.MOUSEBUTTONDOWN:
                     mousepos = pygame.mouse.get_pos()
-                    if option1.rect.collidepoint(mousepos):
-                        Game.check_answer(option1.text)
-                    elif option2.rect.collidepoint(mousepos):
-                        Game.check_answer(option2.text)
-                    elif option3.rect.collidepoint(mousepos):
-                        Game.check_answer(option3.text)
-                    elif option4.rect.collidepoint(mousepos):
-                        Game.check_answer(option4.text)
-                    elif playGame.rect.collidepoint(mousepos):
+                    if playGame.rect.collidepoint(mousepos):
                         global gameState
                         global score
                         global questionNum
@@ -189,38 +142,17 @@ class Game:
                         questionNum = 0
                         pygame.time.wait(50)
 
-    # Checks if user picks the correct answer.
-    def check_answer(text: str):
-        global questionNum
-        global refreshAll
-        global score
-        global gameState
-
-        if questionNum + 2 > len(answers) - 1:
-            gameState = GameState.EndScreen
-            return
-
-        if text == answers[questionNum]:
-            score += 1
-            rightAns.play(volume = 0.25)
-            pygame.time.wait(50)            
-        else:
-            score -= 1
-            wrongAns.play(volume = 0.25)
-            pygame.time.wait(50)
-
-        refreshAll = True
-        questionNum += 1
-
     # Defines what each key press does.
     def key_events(gameEvent: pygame.event):
         match gameEvent.key:
             case pygame.K_UP:
-                music.set_music_volume(pygame.mixer.music.get_volume() + 0.1)
+                inputVector.y = -1
             case pygame.K_DOWN:
-                music.set_music_volume(pygame.mixer.music.get_volume() - 0.1)
-            case pygame.K_m:
-                music.set_music_volume(0)
+                inputVector.y = 1
+            case pygame.K_RIGHT:
+                inputVector.x = 1
+            case pygame.K_LEFT:
+                inputVector.x = -1
             case pygame.K_ESCAPE:
                 if window.flags != 0:
                     window.flags = 0

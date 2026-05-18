@@ -3,6 +3,21 @@ class Vector2:
     def __init__(self, x: float = 0, y: float = 0):
         self.x: float = x
         self.y: float = y 
+    
+    def __add__(self, other):
+        newX = self.x + other.x
+        newY = self.y + other.y
+        return Vector2(newX, newY)
+    
+    def __mul__(self, other):
+        newX = self.x * other.x
+        newY = self.y * other.y
+        return Vector2(newX, newY)
+    
+    def __mul__(self, other:float):
+        newX = self.x * other
+        newY = self.y * other
+        return Vector2(newX, newY)
 
 # Class handles the storage of positional, rotational and local scale values.
 class Transform:
